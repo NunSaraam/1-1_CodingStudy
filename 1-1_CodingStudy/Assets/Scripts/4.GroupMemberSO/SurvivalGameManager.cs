@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
+using static ItemSO;
 
 public class SurvivalGameManager : MonoBehaviour
 {
@@ -26,6 +27,10 @@ public class SurvivalGameManager : MonoBehaviour
     public Button healtButton;                              //난방 하기
     public Button healButton;                               //치료 하기
 
+    [Header("아이템 개별 사용 버튼")]
+    public Button[] feedButtons;                               //음식 주기
+    public Button[] healButtons;                               //치료 하기
+
     [Header("게임 상태")]
     int currentDay;                                         //현재 날짜
     public int food = 5;                                    //음식 개수
@@ -47,10 +52,18 @@ public class SurvivalGameManager : MonoBehaviour
 
         nextDayButton.onClick.AddListener(NextDay);
 
-        feedButton.onClick.AddListener(UseFoodItem);
-        healtButton.onClick.AddListener(UseFuelItem);
-        healtButton.onClick.AddListener(UseMedicineItem);
+        feedButton.onClick.AddListener(UseAllMembersFoodItem);
+        healtButton.onClick.AddListener(UseAllMembersFuelItem);
+        healtButton.onClick.AddListener(UseAllMembersMedicineItem);
 
+
+        for (int i = 0; i < groupMembers.Length; i++)
+        {
+            int index = i;
+
+            feedButtons[i].onClick.AddListener(() => OnClickGiveItem(index, ItemType.Food));
+            healButtons[i].onClick.AddListener(() => OnClickGiveItem(index, ItemType.Meidicine));
+        }
     }
 
     void InitializeGroup()
@@ -183,7 +196,7 @@ public class SurvivalGameManager : MonoBehaviour
             text.color = Color.white;
     }
 
-    public void UseFoodItem()                                               //음식 아이템 사용
+    public void UseAllMembersFoodItem()                                               //음식 아이템 사용
     {
         if (food <= 0 || foodItem == null) return;                          //오류 방지 처리
 
@@ -192,7 +205,7 @@ public class SurvivalGameManager : MonoBehaviour
         UpdateUI();
     }
 
-    public void UseFuelItem()
+    public void UseAllMembersFuelItem()
     {
         if (fuel <= 0 || fuelItem == null) return;
 
@@ -201,7 +214,7 @@ public class SurvivalGameManager : MonoBehaviour
         UpdateUI();
     }
 
-    public void UseMedicineItem()
+    public void UseAllMembersMedicineItem()
     {
         if (medicine <= 0 || medicineItem == null) return;
 
@@ -218,6 +231,38 @@ public class SurvivalGameManager : MonoBehaviour
             {
                 ApplyItemEffect(i, item);
             }
+        }
+    }
+
+    void UseItemOnMember(int memberIndex, ItemSO item)              //실제 아이템 사용 매서드
+    {
+        if (groupMembers[memberIndex] != null && memberHealth[memberIndex] > 0)
+        {
+            ApplyFMItemEffect(memberIndex, item);
+        }
+    }
+
+    public void OnClickGiveItem(int memberIndex, ItemType type)                 //버튼 클릭시 차감, UI적용을 위한 switch문 사용
+    {
+        switch (type)
+        {
+            case ItemType.Food:
+                if (food > 0)
+                {
+                    UseItemOnMember(memberIndex, foodItem);
+                    food--;
+                    UpdateUI();
+                }
+                break;
+
+            case ItemType.Meidicine:
+                if (medicine > 0)
+                {
+                    UseItemOnMember(memberIndex, medicineItem);
+                    medicine--;
+                    UpdateUI();
+                }
+                break;
         }
     }
 
@@ -241,4 +286,20 @@ public class SurvivalGameManager : MonoBehaviour
         memberBodyTemp[memberIndex] = Mathf.Min(memberBodyTemp[memberIndex], member.normalBodyTemp);
     }
 
+    void ApplyFMItemEffect(int memberIndex, ItemSO item)
+    {
+        GroupMemberSO member = groupMembers[memberIndex];
+
+        //개인 특성 적용해서 아이템 효과 계산
+        int actualHealth = Mathf.RoundToInt(item.healthEffect * member.recoveryRate);
+        int actualHunger = Mathf.RoundToInt(item.hungerEffect * member.foodEfficiency);
+
+        //효과 적용
+        memberHealth[memberIndex] += actualHealth;
+        memberHunger[memberIndex] += actualHunger;
+
+        //최대치 제한
+        memberHealth[memberIndex] = Mathf.Min(memberHealth[memberIndex], member.maxHealth);
+        memberHunger[memberIndex] = Mathf.Min(memberHunger[memberIndex], member.maxHunger);
+    }
 }
