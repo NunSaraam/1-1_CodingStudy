@@ -11,4 +11,9 @@ public class DrinkSO : ScriptableObject
     public Sprite drinkIcon;                        //음료 이미지
     public int price;                               //음료 가격
     public int stock;                               //남은 재고
+
+    [Header("설명")]
+    [TextArea(2, 3)]
+    public string description = "음료수 입니다.";
+
 }
