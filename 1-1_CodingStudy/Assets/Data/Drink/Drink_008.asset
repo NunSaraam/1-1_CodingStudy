@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   drinkName: "\uCEE4\uD53C"
   drinkIcon: {fileID: 0}
-  price: 1300
+  drinkPrice: 1000
   description: "\uCEE4\uD53C \uC785\uB2C8\uB2E4."

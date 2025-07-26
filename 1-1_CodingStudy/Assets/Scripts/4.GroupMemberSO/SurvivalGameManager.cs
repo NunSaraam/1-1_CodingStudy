@@ -151,7 +151,7 @@ public class SurvivalGameManager : MonoBehaviour
         int baseHungerLoss = 15;
         int baseTempLoss = 1;
         
-        for (int i = 0; i <groupMembers.Length; i++)
+        for (int i = 0; i < groupMembers.Length; i++)
         {
             if (groupMembers[i] == null) continue;                      //그룹중 1명이 사망해도 계속 진행
             {
